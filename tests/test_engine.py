@@ -6,8 +6,8 @@ import mock
 
 import nap
 from nap.http import NapResponse
-from nap.engine import ResourceEngine
-from nap.exceptions import InvalidStatusError
+from nap.engine import ResourceEngine, ValidableResourceEngine
+from nap.exceptions import InvalidStatusError, NapValidationException
 
 from . import SampleResourceModel
 
@@ -528,3 +528,55 @@ def test_modify_request():
         )
 
     SampleResourceModel._lookup_urls = []
+
+
+class TestValidableResourceEngine(BaseResourceModelTest):
+
+    def get_engine(self):
+        engine = ValidableResourceEngine(SampleResourceModel)
+        return engine
+
+    @mock.patch('nap.engine.ResourceEngine.validate_collection_response')
+    def test_validate_collection_response(self, *mocks):
+        parent_func = mocks[0]
+        engine = self.get_engine()
+        res = self.get_mock_response()
+
+        res.status_code = 200
+        engine.validate_collection_response(res)
+        assert parent_func.called
+
+        res.status_code = 400
+        res.content = json.dumps({'error': 'fail'})
+        with pytest.raises(NapValidationException):
+            engine.validate_collection_response(res)
+
+    @mock.patch('nap.engine.ResourceEngine.validate_update_response')
+    def test_validate_update_response(self, *mocks):
+        parent_func = mocks[0]
+        engine = self.get_engine()
+        res = self.get_mock_response()
+
+        res.status_code = 204
+        engine.validate_update_response(res)
+        assert parent_func.called
+
+        res.status_code = 400
+        res.content = json.dumps({'error': 'fail'})
+        with pytest.raises(NapValidationException):
+            engine.validate_update_response(res)
+
+    @mock.patch('nap.engine.ResourceEngine.validate_create_response')
+    def test_validate_create_response(self, *mocks):
+        parent_func = mocks[0]
+        engine = self.get_engine()
+        res = self.get_mock_response()
+
+        res.status_code = 201
+        engine.validate_create_response(res)
+        assert parent_func.called
+
+        res.status_code = 400
+        res.content = json.dumps({'error': 'fail'})
+        with pytest.raises(NapValidationException):
+            engine.validate_create_response(res)

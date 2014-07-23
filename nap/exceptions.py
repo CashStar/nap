@@ -17,3 +17,7 @@ class EmptyResponseError(Exception):
 
 class DoesNotExist(Exception):
     pass
+
+
+class NapValidationException(Exception):
+    pass
