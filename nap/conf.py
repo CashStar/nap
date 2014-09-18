@@ -28,6 +28,7 @@ DEFAULT_CONFIG = {
     'log_level': 'CRITICAL',
     'cache_backend': BaseCacheBackend(),
     'cached_methods': ('GET', ),
+    'cache_remove_methods': ('DELETE', ),
     'request_args': {},
     'headers': {},
     'content_type': 'application/json'

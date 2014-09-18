@@ -17,6 +17,9 @@ class BaseCacheBackend(object):
     def set(self, key, value, response=None):
         return None
 
+    def delete(self, key):
+        return None
+
     def get_timeout_from_header(self, response):
         cache_headers = response.headers.get('cache-control')
         if cache_headers is None:
