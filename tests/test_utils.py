@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from nap.utils import make_url, is_string_like, handle_slash
+from nap.utils import make_url, is_string_like, handle_slash, to_unicode
 
 
 def test_url():
@@ -50,3 +51,20 @@ class TestHandleTest(object):
         uri = "something.com/?q=bob&x=sue"
         new_uri = handle_slash(uri, add_slash=False)
         assert new_uri == "something.com?q=bob&x=sue"
+
+
+def test_to_unicode_handles_none():
+    assert to_unicode(None) is None
+
+
+def test_to_unicode_handles_unicode():
+    assert isinstance(to_unicode(u'太郎 田中'), unicode)
+
+
+def test_to_unicode_handles_binary():
+    assert isinstance(to_unicode('The arsonist has oddly shaped feet'), unicode)
+
+
+def test_to_unicode_handles_non_string_type():
+    assert isinstance(to_unicode(525600), unicode)
+
