@@ -477,6 +477,14 @@ class ResourceEngine(object):
             return cached_response
 
     def cache_response(self, response):
+        if response.request_method not in self.model._meta['cache_remove_methods']:
+            cache_key = self.cache.get_cache_key(
+                model=self.model,
+                url=response.url,
+                )
+            self.cache.delete(cache_key)
+            return
+
         if response.request_method not in self.model._meta['cached_methods']\
                 or not response.use_cache:
             return
