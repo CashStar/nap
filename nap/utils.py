@@ -1,34 +1,23 @@
 from __future__ import unicode_literals
 from collections import namedtuple
 import itertools
-from urlparse import urlparse
+from urllib import urlencode
+from urlparse import parse_qsl, urlsplit, urlunsplit
 
 import six
 from six.moves import urllib
 
 
 def normalize_url(url_string):
-    QueryParam = namedtuple("QueryParam", "key value")
-    url = urlparse(url_string)
-    if not url.query:
-        return url_string
+    url = urlsplit(url_string)
+    if url.query:
+        query_params = sorted(parse_qsl(url.query, keep_blank_values=True))
+        query_normalized = urlencode(query_params)
+        url = url._replace(query=query_normalized)
 
-    query_params = []
-    for entry in url.query.split('&'):
-        key_value = entry.split("=")
-        query_params.append(QueryParam(key=key_value[0], value=key_value[1] if len(key_value) == 2 else None))
-    query_params.sort()
-
-    query_normalized = "?"
-    for index, param in enumerate(query_params):
-        if index > 0:
-            query_normalized += '&'
-
-        query_normalized += param.key
-        if param.value:
-            query_normalized += "={}".format(param.value)
-
-    return url.scheme + "://" + url.netloc + url.path + url.params + query_normalized + url.fragment
+    # urlsplit'ing and urlunsplit'ing does some normalization, so apply them even if there is not a query string.
+    # See https://docs.python.org/2/library/urlparse.html#urlparse.urlunsplit for more details.
+    return urlunsplit(url)
 
 
 def handle_slash(url, add_slash=None):
