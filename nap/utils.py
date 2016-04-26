@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-from collections import namedtuple
 import itertools
 from urllib import urlencode
 from urlparse import parse_qsl, urlsplit, urlunsplit
