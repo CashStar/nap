@@ -1,7 +1,22 @@
 from __future__ import unicode_literals
 import itertools
+from urllib import urlencode
+from urlparse import parse_qsl, urlsplit, urlunsplit
+
 import six
 from six.moves import urllib
+
+
+def normalize_url(url_string):
+    url = urlsplit(url_string)
+    if url.query:
+        query_params = sorted(parse_qsl(url.query, keep_blank_values=True))
+        query_normalized = urlencode(query_params)
+        url = url._replace(query=query_normalized)
+
+    # urlsplit'ing and urlunsplit'ing does some normalization, so apply them even if there is not a query string.
+    # See https://docs.python.org/2/library/urlparse.html#urlparse.urlunsplit for more details.
+    return urlunsplit(url)
 
 
 def handle_slash(url, add_slash=None):

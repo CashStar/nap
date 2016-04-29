@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 import re
 
+from nap.utils import normalize_url
+
+
 DEFAULT_TIMEOUT = 60 * 5
 
 
@@ -33,7 +36,7 @@ class BaseCacheBackend(object):
 
         key_parts = {
             'resource_name': resource_name,
-            'url': url,
+            'url': normalize_url(url),
         }
 
         cache_key = "%(resource_name)s::%(url)s" % key_parts
