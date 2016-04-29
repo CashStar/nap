@@ -5,22 +5,18 @@ from nap.utils import make_url, is_string_like, handle_slash, normalize_url
 
 class TestNormalizeUrl(object):
     def test_normalize_url(self):
-        url = (
-            "https://s9106.qa.cashstar.com/v1/catalogs/?merchant_code=DELL&promo=ALL&country=ALL&currency=ALL&context=BULK&context=BULKP"
-        )
-        expected_normalized_url = (
-            "https://s9106.qa.cashstar.com/v1/catalogs/?context=BULK&context=BULKP&country=ALL&currency=ALL&merchant_code=DELL&promo=ALL"
-        )
+        url = "https://example.com/path/?two=3&one=1&two=2"
+        expected_normalized_url = "https://example.com/path/?one=1&two=2&two=3"
 
         actual_normalized_url = normalize_url(url)
         assert actual_normalized_url == expected_normalized_url
 
     def test_normalize_partial_url(self):
         url = (
-            "https://s9106.qa.cashstar.com"
+            "https://dot.dot.example.com"
         )
         expected_normalized_url = (
-            "https://s9106.qa.cashstar.com"
+            "https://dot.dot.example.com"
         )
 
         actual_normalized_url = normalize_url(url)
