@@ -48,7 +48,7 @@ class TestResourceModelCreation(object):
 
         different_url = "http://www.differenturl.com/v1/"
         dm = SampleResourceModel(root_url=different_url)
-        assert dm._root_url == different_url
+        assert dm._meta['root_url'] == different_url
 
 
 class TestResourceSave(object):
@@ -141,7 +141,7 @@ class TestReourceEtcMethods(object):
         assert dm != object()
 
     def test_cache_key_method(self):
-        dm = SampleResourceModel(slug='some-slug')
+        dm = SampleResourceModel(root_url="http://foo.com/v1/", slug='some-slug')
 
         assert dm.cache_key == "note::http://foo.com/v1/note/some-slug/"
 
@@ -187,3 +187,35 @@ class TestResourceShortcutMethods(object):
         obj.delete()
         eng_del.assert_called_with(obj)
         assert obj.resource_id is None
+
+
+class TestRootURLPop(object):
+
+    def test_resource_id_get(self):
+        # Create resource with some url
+        some_url = "http://www.someurl.com/v1/"
+        dm1 = SampleResourceModel(
+            root_url=some_url,
+            content='Blank Content')
+
+        assert dm1._meta['root_url'] == some_url
+        with pytest.raises(AttributeError):
+            dm1.root_url
+
+        # After the first creation I shouldn't have to set the root url again
+        dm2 = SampleResourceModel(
+            content='Blank Content')
+
+        assert dm2._meta['root_url'] == some_url
+        with pytest.raises(AttributeError):
+            dm2.root_url
+
+        # If the root url gets set to something else now it should hold
+        different_url = "http://www.differenturl.com/v1/"
+        dm3 = SampleResourceModel(
+            root_url=different_url,
+            content='Blank Content')
+
+        assert dm3._meta['root_url'] == different_url
+        with pytest.raises(AttributeError):
+            dm3.root_url

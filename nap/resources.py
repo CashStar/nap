@@ -60,7 +60,7 @@ class ResourceModel(object):
     def __init__(self, *args, **kwargs):
         """Construct a new model instance
         """
-        self._root_url = kwargs.get('root_url', self._meta['root_url'])
+        self._meta['root_url'] = kwargs.pop('root_url', self._meta['root_url'])
         self._request_args = kwargs.pop('request_args', {})
 
         self._saved = False
