@@ -2,9 +2,6 @@ VERSION=0.0.1
 default: test
 
 test:
-	py.test
-
-coverage:
-	py.test --cov nap --cov-report html
+	DJANGO_SETTINGS_MODULE=tests.django_settings python setup.py test
 
 .PHONY: build watch

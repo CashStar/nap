@@ -1,5 +1,6 @@
 *.pot
 *.pyc
+.eggs
 .coveragerc
 .coverage
 htmlcov

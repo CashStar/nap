@@ -4,7 +4,6 @@ from datetime import datetime
 from setuptools import setup, find_packages
 
 version = '%s' % datetime.now().strftime("%Y-%m-%d-%H_%M_%S_%f")
-test_requirements = ['mock', ]
 setup(
     name='nap',
     version=version,
@@ -14,13 +13,19 @@ setup(
     url='https://github.com/jacobb/nap',
     long_description=open('README.rst').read(),
     packages=find_packages(),
-    requires=[
-    ],
     zip_safe=False,
-    tests_require=test_requirements,
+    setup_requires=['pytest-runner>=2.0,<3dev'],
+    tests_require=[
+        'pytest',
+        'pytest-cov',
+        'mock',
+        'Django>=1.8.18',
+        'Flask>=0.11.1',
+        'Flask-Caching>=1.2.0'
+    ],
     install_requires=[
         'requests>=1.2.3', 'six'
-    ] + test_requirements,
+    ],
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
