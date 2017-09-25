@@ -18,7 +18,6 @@ class TestBaseCacheBackend(object):
         return BaseCacheBackend(**defaults)
 
     def get_fake_request(self, **kwargs):
-
         defaults = {
             'url': 'http://www.foo.com/bar/',
         }
@@ -45,7 +44,6 @@ class TestBaseCacheBackend(object):
         return mock_response
 
     def test_get_cache_key(self):
-
         obj = SampleResourceModel(
             title='expected_title',
             content='Blank Content'
@@ -118,7 +116,6 @@ class TestBaseCacheBackend(object):
 class TestDjangoCacheBackend(TestBaseCacheBackend):
 
     def get_backend(self, **kwargs):
-
         django_cache = pytest.importorskip("nap.cache.django_cache")
         defaults = {
             'default_timeout': DEFAULT_TIMEOUT,
@@ -133,11 +130,11 @@ class TestDjangoCacheBackend(TestBaseCacheBackend):
             dj_cache_get.return_value = 'a thing'
             res = mock.Mock()
             res.url = 'naprulez.org'
+
             backend.get(res)
             assert dj_cache_get.called
 
     def test_set(self):
-
         backend = self.get_backend()
         with mock.patch('django.core.cache.cache.set') as dj_cache_set:
             res = mock.Mock()
@@ -151,7 +148,6 @@ class TestDjangoCacheBackend(TestBaseCacheBackend):
 class TestFlaskCacheBackend(TestBaseCacheBackend):
 
     def get_backend(self, **kwargs):
-
         flask_cache = pytest.importorskip("nap.cache.flask_cache")
         defaults = {
             'default_timeout': DEFAULT_TIMEOUT,
@@ -172,11 +168,11 @@ class TestFlaskCacheBackend(TestBaseCacheBackend):
             fl_cache_get.return_value = 'a thing'
             res = mock.Mock()
             res.url = 'naprulez.org'
+
             backend.get(res)
             assert fl_cache_get.called
 
     def test_set(self):
-
         backend = self.get_backend()
         with mock.patch('flask_caching.Cache.set') as fl_cache_set:
             res = mock.Mock()
