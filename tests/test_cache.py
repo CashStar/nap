@@ -163,7 +163,6 @@ class TestFlaskCacheBackend(TestBaseCacheBackend):
         }
         from flask import Flask
         app = Flask(__name__, static_url_path='/store/static')
-        #app = mock.MagicMock()
         defaults.update(kwargs)
         return flask_cache.FlaskCacheBackend(app, **defaults)
 
