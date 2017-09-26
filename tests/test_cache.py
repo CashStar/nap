@@ -2,8 +2,11 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 import mock
 import pytest
-from . import SampleResourceModel
 
+from flask import Flask
+
+from . import SampleResourceModel
+from nap.cache import django_cache, flask_cache
 from nap.cache.base import BaseCacheBackend, DEFAULT_TIMEOUT
 
 
@@ -116,7 +119,6 @@ class TestBaseCacheBackend(object):
 class TestDjangoCacheBackend(TestBaseCacheBackend):
 
     def get_backend(self, **kwargs):
-        django_cache = pytest.importorskip("nap.cache.django_cache")
         defaults = {
             'default_timeout': DEFAULT_TIMEOUT,
             'obey_cache_headers': True,
@@ -126,21 +128,21 @@ class TestDjangoCacheBackend(TestBaseCacheBackend):
 
     def test_get(self):
         backend = self.get_backend()
+        res = mock.Mock()
+        res.url = 'naprulez.org'
+
         with mock.patch('django.core.cache.cache.get') as dj_cache_get:
             dj_cache_get.return_value = 'a thing'
-            res = mock.Mock()
-            res.url = 'naprulez.org'
-
             backend.get(res)
             assert dj_cache_get.called
 
     def test_set(self):
         backend = self.get_backend()
-        with mock.patch('django.core.cache.cache.set') as dj_cache_set:
-            res = mock.Mock()
-            res.url = 'naprulez.org'
-            res.headers = {}
+        res = mock.Mock()
+        res.url = 'naprulez.org'
+        res.headers = {}
 
+        with mock.patch('django.core.cache.cache.set') as dj_cache_set:
             backend.set(res, res.value)
             assert dj_cache_set.called
 
@@ -148,7 +150,6 @@ class TestDjangoCacheBackend(TestBaseCacheBackend):
 class TestFlaskCacheBackend(TestBaseCacheBackend):
 
     def get_backend(self, **kwargs):
-        flask_cache = pytest.importorskip("nap.cache.flask_cache")
         defaults = {
             'default_timeout': DEFAULT_TIMEOUT,
             'obey_cache_headers': True,
@@ -157,27 +158,26 @@ class TestFlaskCacheBackend(TestBaseCacheBackend):
                 'CACHE_KEY_PREFIX': '',
             }
         }
-        from flask import Flask
         app = Flask(__name__, static_url_path='/store/static')
         defaults.update(kwargs)
         return flask_cache.FlaskCacheBackend(app, **defaults)
 
     def test_get(self):
         backend = self.get_backend()
+        res = mock.Mock()
+        res.url = 'naprulez.org'
+
         with mock.patch('flask_caching.Cache.get') as fl_cache_get:
             fl_cache_get.return_value = 'a thing'
-            res = mock.Mock()
-            res.url = 'naprulez.org'
-
             backend.get(res)
             assert fl_cache_get.called
 
     def test_set(self):
         backend = self.get_backend()
-        with mock.patch('flask_caching.Cache.set') as fl_cache_set:
-            res = mock.Mock()
-            res.url = 'naprulez.org'
-            res.headers = {}
+        res = mock.Mock()
+        res.url = 'naprulez.org'
+        res.headers = {}
 
+        with mock.patch('flask_caching.Cache.set') as fl_cache_set:
             backend.set(res, res.value)
             assert fl_cache_set.called
