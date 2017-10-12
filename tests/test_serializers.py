@@ -29,10 +29,10 @@ class TestJSONSerializer(object):
         }
 
         serializer = self.get_serializer()
-
         json_str = serializer.serialize(sample_dict)
+        dict_from_json = json.loads(json_str)
 
-        assert json_str == '{"a": 1, "b": 2}'
+        assert dict_from_json == sample_dict
 
     def test_deserialize(self):
 

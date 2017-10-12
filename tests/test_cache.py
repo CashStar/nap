@@ -7,7 +7,7 @@ from flask import Flask
 
 from . import SampleResourceModel
 from nap.cache import django_cache, flask_cache
-from nap.cache.base import BaseCacheBackend, DEFAULT_TIMEOUT
+from nap.cache.base import BaseCacheBackend, DEFAULT_TIMEOUT, MAX_CACHE_KEY_LENGTH
 
 
 class TestBaseCacheBackend(object):
@@ -57,6 +57,25 @@ class TestBaseCacheBackend(object):
         url = SampleResourceModel.objects.get_full_url(uri)
         key = cache_backend.get_cache_key(SampleResourceModel, url)
         assert key == "note::http://foo.com/v1/expected_title/"
+
+    def test_cache_key_very_long_is_hashed(self):
+        # Given: A cache backend and a very long URL
+        cache_backend = self.get_backend()
+        url = """https://a.very.long.url.should.contain.a.famous.quote.such.as.
+        Government.of.the people,by.the.people,for.the.people,shall.not.perish.from.the.Earth.
+        Hmmm.That.wasnt.long.enough.How.About.
+        And.in.the.end,its.not.the.years.in.your.life.that.count..Its.the.life.in.your.years.
+        Abraham.Lincoln.com"""
+        assert len(url) > MAX_CACHE_KEY_LENGTH
+        cache_backend.get_cache_key(SampleResourceModel, url)
+        obj = SampleResourceModel(
+            title='expected_title',
+            content='Blank Content'
+        )
+        expected_key = 'note::2c0d407be28bba0d46a37a91ac525e71'
+        cache_key = cache_backend.get_cache_key(SampleResourceModel, url)
+        assert len(cache_key) < MAX_CACHE_KEY_LENGTH
+        assert cache_key == expected_key
 
     def test_get_cache_key_with_parameters(self):
         kwargs = {'c': 1, 'b': 2, 'a_list': [5, 4, 3]}

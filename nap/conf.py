@@ -27,7 +27,7 @@ DEFAULT_CONFIG = {
     'valid_create_status': (201,),
     'valid_delete_status': (200, 202, 204),
     'bad_request_status': (400,),
-    'log_level': 'CRITICAL',
+    'log_level': 'INFO',
     'cache_backend': BaseCacheBackend(),
     'cached_methods': ('GET', ),
     'request_args': {},
