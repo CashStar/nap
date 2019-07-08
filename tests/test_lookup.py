@@ -1,13 +1,10 @@
-from __future__ import unicode_literals
 from nap.lookup import LookupURL
 
 
-class TestLookupURL(object):
-
+class TestLookupURL:
     url_string = r'xx%(hello)s%(what)s'
 
     def test_init(self):
-
         lookup_url = LookupURL(self.url_string, ('extra',))
 
         assert lookup_url.url_string == self.url_string
@@ -27,7 +24,6 @@ class TestLookupURL(object):
         assert 'extra' in lookup_url.required_vars
 
     def test_multiple_extra_params(self):
-
         lookup_url = LookupURL(self.url_string)
 
         url, extra = lookup_url.match(hello='hi', what='who', extra_extra=['one', 'two'])

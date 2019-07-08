@@ -1,6 +1,4 @@
-from __future__ import unicode_literals
 import nap
-
 
 
 class User(nap.ResourceModel):
@@ -12,10 +10,13 @@ class Tweet(nap.ResourceModel):
     text = nap.Field()
 
     class Meta:
-        root_url = "https://api.twitter.com/1/"
-        resource_name = "statuses"
+        root_url = 'https://api.twitter.com/1/'
+        resource_name = 'statuses'
         add_slash = False
         urls = (
-            nap.nap_url("%(resource_name)s/show.json",
-                params=('id',), lookup=True),
+            nap.nap_url(
+                '%(resource_name)s/show.json',
+                params=('id',),
+                lookup=True
+            ),
         )

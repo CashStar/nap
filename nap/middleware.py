@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
-
-class BaseMiddleware(object):
-
+class BaseMiddleware:
     def handle_request(self, request):
         return request
 

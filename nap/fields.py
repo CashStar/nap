@@ -1,14 +1,17 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import datetime
 from decimal import Decimal
 
-from .utils import is_string_like
+from nap.utils import is_string_like
 
 
-class Field(object):
-
-    def __init__(self, api_name=None, default=None, resource_id=False, readonly=None):
+class Field:
+    def __init__(
+            self,
+            api_name=None,
+            default=None,
+            resource_id=False,
+            readonly=None
+    ):
         self.api_name = api_name
         self.default = default
         self.resource_id = resource_id
@@ -22,20 +25,19 @@ class Field(object):
         return self.default
 
     def scrub_value(self, val):
-        """Turn post-deserialized data into the expected end value
-        """
+        """Turn post-deserialized data into the expected end value."""
+
         return val
 
     def descrub_value(self, val, for_read=False):
-        """Turn python data into a serializer-friendly format
-        """
+        """Turn python data into a serializer-friendly format."""
+
         return val
 
 
 class DateTimeField(Field):
-
     def __init__(self, *args, **kwargs):
-        iso_8601 = "%Y-%m-%dT%H:%M:%S"
+        iso_8601 = '%Y-%m-%dT%H:%M:%S'
         try:
             dt_formats = kwargs.pop('dt_format')
         except KeyError:
@@ -45,7 +47,8 @@ class DateTimeField(Field):
             dt_formats = (dt_formats,)
 
         self.dt_formats = dt_formats
-        super(DateTimeField, self).__init__(*args, **kwargs)
+
+        super().__init__(*args, **kwargs)
 
     def scrub_value(self, val):
 
@@ -63,20 +66,21 @@ class DateTimeField(Field):
             else:
                 break
         else:
-            raise ValueError("%s is not a valid time format" % val)
+            raise ValueError(f'{val} is not a valid time format')
+
         return scrubbed_val
 
     def descrub_value(self, val, for_read=False):
         if not val:
             return None
+
         dt_format = self.dt_formats[0]
         return datetime.datetime.strftime(val, dt_format)
 
 
 class DateField(Field):
-
     def __init__(self, *args, **kwargs):
-        iso_8601 = "%Y-%m-%d"
+        iso_8601 = '%Y-%m-%d'
         try:
             dt_formats = kwargs.pop('dt_format')
         except KeyError:
@@ -86,27 +90,29 @@ class DateField(Field):
             dt_formats = (dt_formats,)
 
         self.dt_formats = dt_formats
-        super(DateField, self).__init__(*args, **kwargs)
+
+        super().__init__(*args, **kwargs)
 
     def scrub_value(self, val):
-
         if not val:
             return None
 
-        for format in self.dt_formats:
+        for fmt in self.dt_formats:
             try:
-                scrubbed_val = datetime.datetime.strptime(val, format).date()
+                scrubbed_val = datetime.datetime.strptime(val, fmt).date()
             except ValueError:
                 continue
             else:
                 break
         else:
-            raise ValueError("%s is not a valid date format" % val)
+            raise ValueError(f'{val} is not a valid date format')
+
         return scrubbed_val
 
     def descrub_value(self, val, for_read=False):
         if not val:
             return None
+
         dt_format = self.dt_formats[0]
         return datetime.date.strftime(val, dt_format)
 
@@ -119,6 +125,7 @@ class DecimalField(Field):
         of returning a Decimal.  Otherwise convert the provided value
         to a string before constructing the Decimal.
         """
+
         if val is None:
             return None
 
@@ -132,6 +139,7 @@ class DecimalField(Field):
         If the provided value is None or empty return None instead
         of returning a string.
         """
+
         if val is None:
             return None
 
@@ -141,51 +149,51 @@ class DecimalField(Field):
 
 
 class ResourceField(Field):
-
     def __init__(self, resource_model, *args, **kwargs):
         self.resource_model = resource_model
-        super(ResourceField, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def coerce(self, val):
-
         if isinstance(val, self.resource_model):
             return val
 
         return self.resource_model(**val)
 
     def scrub_value(self, val):
-        """
-        Val should be a string representing a resource_model object
-        """
+        """Val should be a string representing a resource_model object."""
 
         if not val:
             return None
+
         resource = self.coerce(val)
         return resource
 
     def descrub_value(self, val, for_read=False):
         if not val:
             return None
+
         return val.to_python()
 
 
 class ListField(ResourceField):
     def scrub_value(self, val):
-
         if not val:
             return []
+
         resource_list = [self.coerce(v) for v in val]
         return resource_list
 
     def descrub_value(self, val, for_read=False):
         if not val:
             return []
+
         obj_list = [obj.to_python(for_read=for_read) for obj in val]
         return obj_list
 
 
 class SimpleListField(Field):
-    """A list of simple types (e.g. strings, not Resources)"""
+    """A list of simple types (e.g. strings, not Resources)."""
+
     def scrub_value(self, val):
         if isinstance(val, list):
             return val
@@ -205,31 +213,27 @@ class SimpleListField(Field):
             return []
         else:
             return [val]
-
 
 
 class DictField(ResourceField):
-
     def scrub_value(self, val):
-        """
-        Val should be a string representing a resource_model object
-        """
+        """Val should be a string representing a resource_model object."""
 
         if not val:
             return {}
 
-        resource_dict = dict([
-            (k, self.coerce(v)) for (k, v) in val.items()
-        ])
+        resource_dict = {
+            k: self.coerce(v) for k, v in val.items()
+        }
         return resource_dict
 
     def descrub_value(self, val, for_read=False):
-        """
-        Val should be a string representing a resource_model object
-        """
+        """Val should be a string representing a resource_model object."""
+
         if not val:
             return {}
-        resource_dict = dict([
-            (k, v.to_python()) for (k, v) in val.items()
-        ])
+
+        resource_dict = {
+            k: v.to_python() for k, v in val.items()
+        }
         return resource_dict

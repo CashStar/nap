@@ -9,7 +9,7 @@ class SampleResourceModel(nap.ResourceModel):
     alt_name = nap.Field(api_name='some_field')
 
     class Meta:
-        root_url = "http://foo.com/v1/"
+        root_url = 'http://foo.com/v1/'
         resource_name = 'note'
         append_urls = (
             nap.lookup.nap_url(r'%(hello)s/%(what)s/'),
@@ -24,7 +24,7 @@ class SampleResourceNoIdModel(nap.ResourceModel):
     alt_name = nap.Field(api_name='some_field')
 
     class Meta:
-        root_url = "http://foo.com/v1/"
+        root_url = 'http://foo.com/v1/'
         resource_name = 'note'
         append_urls = (
             nap.lookup.nap_url(r'%(hello)s/%(what)s/'),
@@ -39,7 +39,7 @@ class SampleResourceNoUpdateModel(nap.ResourceModel):
     alt_name = nap.Field(api_name='some_field')
 
     class Meta:
-        root_url = "http://foo.com/v1/"
+        root_url = 'http://foo.com/v1/'
         resource_name = 'note'
         append_urls = (
             nap.lookup.nap_url(r'%(hello)s/%(what)s/'),
@@ -53,7 +53,7 @@ class AuthorModel(nap.ResourceModel):
     email = nap.Field(default=None)
 
     class Meta:
-        root_url = "http://foo.com/v1/"
+        root_url = 'http://foo.com/v1/'
 
 
 class InMemoryCache(BaseCacheBackend):
@@ -71,6 +71,7 @@ class InMemoryCache(BaseCacheBackend):
     def clear(self):
         self._cache = {}
 
+
 class SampleCacheableResource(nap.ResourceModel):
     title = nap.Field()
     content = nap.Field()
@@ -81,6 +82,8 @@ class SampleCacheableResource(nap.ResourceModel):
         root_url = "http://foo.com/v1/"
         resource_name = 'note'
         append_urls = (
-            nap.lookup.nap_url(r'something/great/', collection=True, lookup=True),
+            nap.lookup.nap_url(
+                r'something/great/', collection=True, lookup=True
+            ),
         )
         cache_backend = InMemoryCache()

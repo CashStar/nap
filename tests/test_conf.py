@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from nap.conf import NapConfig, DEFAULT_CONFIG
 from nap.auth import BaseAuthorization
 
@@ -11,7 +10,6 @@ def test_config_defaults():
 
 
 def test_config_override():
-
     new_options = {
         'override_methood': 'PATCH',
         'add_slash': False,
@@ -29,7 +27,6 @@ def test_config_override():
 
 
 def test_auth_added_to_middleware():
-
     conf_dict = {
         'auth': (BaseAuthorization,)
     }

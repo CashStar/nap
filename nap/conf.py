@@ -1,12 +1,9 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
-"""
-Kudos to mitsuhiko for flask's configuration for inspiring much of this
-"""
+"""Kudos to mitsuhiko for flask's configuration for inspiring much of this."""
 import logging
+from collections import UserDict
 
-from .cache.base import BaseCacheBackend
-from .engine import ResourceEngine
+from nap.cache.base import BaseCacheBackend
+from nap.engine import ResourceEngine
 
 
 DEFAULT_CONFIG = {
@@ -34,12 +31,10 @@ DEFAULT_CONFIG = {
     'headers': {},
     'content_type': 'application/json'
 }
-
 REQUIRED_CONFIG = ('resource_name', 'urls')
 
 
-class NapConfig(dict):
-
+class NapConfig(UserDict):
     def get_request_headers(self, config):
         """
         Figures out a "final" ditionary of arguments to pass to
@@ -88,4 +83,4 @@ class NapConfig(dict):
         # last middleware classes ran
         config['middleware'] += config['auth']
 
-        dict.__init__(self, config)
+        super().__init__(self, **config)

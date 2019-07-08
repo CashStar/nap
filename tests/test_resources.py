@@ -1,19 +1,17 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
+from unittest import mock
+
 import nap
-from nap.exceptions import EmptyResponseError
-
-import mock
 import pytest
+from nap.exceptions import EmptyResponseError
+from tests import (
+    SampleResourceModel,
+    SampleResourceNoIdModel,
+    SampleResourceNoUpdateModel
+)
 
-from . import (SampleResourceModel, SampleResourceNoIdModel,
-    SampleResourceNoUpdateModel)
 
-
-class TestResourceModelCreation(object):
-
+class TestResourceModelCreation:
     def test_mapping_to_fields(self):
-
         dm = SampleResourceModel(title='a', content='b')
 
         assert dm.title == 'a'
@@ -21,7 +19,6 @@ class TestResourceModelCreation(object):
         assert len(dm.extra_data) == 0
 
     def test_extra_data(self):
-
         dm = SampleResourceModel(title='a', note='b', z='c')
 
         assert dm.extra_data['z'] == 'c'
@@ -33,30 +30,28 @@ class TestResourceModelCreation(object):
         assert dm.alt_name == 'c'
 
     def test_meta_attached(self):
-
         class SampleMetaDataModel(nap.ResourceModel):
             class Meta:
                 resource_name = 'bob'
-                root_url = "http://foo.com/v1/"
+                root_url = 'http://foo.com/v1/'
 
         dm = SampleMetaDataModel()
 
         assert dm._meta['resource_name'] == 'bob'
-        assert dm._meta['root_url'] == "http://foo.com/v1/"
+        assert dm._meta['root_url'] == 'http://foo.com/v1/'
 
     def test_override_root_url(self):
-
-        different_url = "http://www.differenturl.com/v1/"
+        different_url = 'http://www.differenturl.com/v1/'
         dm = SampleResourceModel(root_url=different_url)
         assert dm._root_url == different_url
 
 
 class TestResourceSave(object):
-
     def test_save(self):
         dm = SampleResourceModel(
             title=None,
-            content='Blank Content')
+            content='Blank Content'
+        )
         with mock.patch('nap.engine.ResourceEngine.create') as create:
             dm.save()
             assert create.called
@@ -72,7 +67,8 @@ class TestResourceSave(object):
     def test_save_no_update_from_write(self):
         dm = SampleResourceNoUpdateModel(
             title=None,
-            content='Blank Content')
+            content='Blank Content'
+        )
         with mock.patch('nap.engine.ResourceEngine.create') as create:
             create.return_value = None
             dm.save()
@@ -84,8 +80,7 @@ class TestResourceSave(object):
             assert update.called
 
 
-class TestResourceID(object):
-
+class TestResourceID:
     def test_resource_id_get(self):
         dm = SampleResourceModel(
             title='expected_title',
@@ -106,7 +101,7 @@ class TestResourceID(object):
             slug='some-slug',
         )
 
-        dm.resource_id = "Hello"
+        dm.resource_id = 'Hello'
         assert dm.resource_id is None
 
     def test_resource_id_set(self):
@@ -121,9 +116,7 @@ class TestResourceID(object):
 
 
 class TestReourceEtcMethods(object):
-
     def test_repr(self):
-
         dm = SampleResourceModel(slug='some-slug')
         assert str(dm) == '<SampleResourceModel: some-slug>'
 
@@ -143,18 +136,16 @@ class TestReourceEtcMethods(object):
     def test_cache_key_method(self):
         dm = SampleResourceModel(slug='some-slug')
 
-        assert dm.cache_key == "note::http://foo.com/v1/note/some-slug/"
+        assert dm.cache_key == 'note::http://foo.com/v1/note/some-slug/'
 
 
-class TestResourceAuth(object):
-
+class TestResourceAuth:
     def test_meta_set(self):
         # SampleResourceModel
         pass
 
 
-class TestResourceShortcutMethods(object):
-
+class TestResourceShortcutMethods:
     def get_resource_obj(self, **kwargs):
         defaults = {
             'slug': 'some-slug',

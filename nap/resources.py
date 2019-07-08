@@ -1,22 +1,18 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
-from .conf import NapConfig
-from .exceptions import EmptyResponseError
-from .fields import Field
-from .lookup import default_lookup_urls
-from .utils import to_unicode
-import six
+from nap.conf import NapConfig
+from nap.exceptions import EmptyResponseError
+from nap.fields import Field
+from nap.lookup import default_lookup_urls
+from nap.utils import to_unicode
 
 
 class DataModelMetaClass(type):
-
-    def __new__(cls, name, bases, attrs):
-        super_new = super(DataModelMetaClass, cls).__new__
+    def __new__(mcs, name, bases, attrs):
+        super_new = super().__new__
         parents = [b for b in bases if isinstance(b, DataModelMetaClass)]
         if not parents:
-            return super_new(cls, name, bases, attrs)
+            return super_new(mcs, name, bases, attrs)
 
-        model_cls = super_new(cls, name, bases, attrs)
+        model_cls = super_new(mcs, name, bases, attrs)
         fields = {}
 
         options = attrs.pop('Meta', None)
@@ -53,13 +49,14 @@ class DataModelMetaClass(type):
         setattr(model_cls, '_meta', _meta)
 
         setattr(model_cls, 'objects', _meta['engine_class'](model_cls))
+
         return model_cls
 
-@six.add_metaclass(DataModelMetaClass)
-class ResourceModel(object):
+
+class ResourceModel(metaclass=DataModelMetaClass):
     def __init__(self, *args, **kwargs):
-        """Construct a new model instance
-        """
+        """Construct a new model instance."""
+
         self._root_url = kwargs.get('root_url', self._meta['root_url'])
         self._request_args = kwargs.pop('request_args', {})
 
@@ -68,24 +65,27 @@ class ResourceModel(object):
 
     def __eq__(self, other):
         if hasattr(other, 'to_python'):
-            return self.to_python(for_read=True) == other.to_python(for_read=True)
+            return self.to_python(for_read=True) == other.to_python(
+                for_read=True
+            )
+
         return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def update_fields(self, field_data):
-        """Update object's values to values of field_data
+        """Update object's values to values of field_data.
 
         :param field_data: dict-like object with 'Field Name'->'New  Value'
         """
 
         self._raw_field_data = field_data
         model_fields = self._meta['fields']
-        api_name_map = dict([
-            (field.api_name or name, name)
-            for (name, field) in model_fields.items()
-        ])
+        api_name_map = {
+            field.api_name or name: name
+            for name, field in model_fields.items()
+        }
 
         extra_data = set(field_data.keys()) - set(api_name_map.keys())
         for api_name, field_name in api_name_map.items():
@@ -98,20 +98,21 @@ class ResourceModel(object):
 
             setattr(self, field_name, value)
 
-        self.extra_data = dict([
-            (key, field_data[key])
+        self.extra_data = {
+            key: field_data[key]
             for key in extra_data
-        ])
+        }
 
     def update(self, **kwargs):
-        """
-        Shortcut function to force an update on an object
-        """
+        """Shortcut function to force an update on an object."""
+
         obj = self.objects.update(self, **kwargs)
         if self._meta['update_from_write']:
             if not obj:
-                raise EmptyResponseError("Cannot update fields: "
-                    "update_from_write is True but no object was returned")
+                raise EmptyResponseError(
+                    'Cannot update fields: '
+                    'update_from_write is True but no object was returned'
+                )
             self.update_fields(obj._raw_field_data)
 
     def delete(self, **kwargs):
@@ -120,33 +121,42 @@ class ResourceModel(object):
 
     def save(self, **kwargs):
         """Contextually save current object. If an object can generate an
-        update URL, send an update command. Otherwise, create
+        update URL, send an update command. Otherwise, create.
         """
 
         request_kwargs = kwargs.pop('request_kwargs', {})
         update_url = self.objects.get_update_url(self)
         if self._saved or self.full_url or update_url:
-            obj = self.objects.modify_request(**request_kwargs).update(self, **kwargs)
+            obj = self.objects.modify_request(
+                **request_kwargs
+            ).update(self, **kwargs)
         else:
-            obj = self.objects.modify_request(**request_kwargs).create(self, **kwargs)
+            obj = self.objects.modify_request(
+                **request_kwargs
+            ).create(self, **kwargs)
 
         if self._meta['update_from_write']:
             if not obj:
-                raise EmptyResponseError("Cannot update fields: "
-                    "update_from_write is True but no object was returned")
+                raise EmptyResponseError(
+                    'Cannot update fields: '
+                    'update_from_write is True but no object was returned'
+                )
             self.update_fields(obj._raw_field_data)
 
     # utility methods
     def to_python(self, for_read=False):
-        """Converts editable field data to a python dictionary
+        """Converts editable field data to a python dictionary.
 
         :param for_read: include readonly fields.
         """
-        obj_dict = dict([
-            (field_name, field.descrub_value(getattr(self, field_name), for_read))
+
+        obj_dict = {
+            field_name: field.descrub_value(
+                getattr(self, field_name), for_read
+            )
             for field_name, field in self._meta['fields'].items()
             if for_read or field.readonly is False
-        ])
+        }
 
         return obj_dict
 
@@ -163,7 +173,8 @@ class ResourceModel(object):
     # properties
     @property
     def full_url(self):
-        "Return a pre-set resource URL if available"
+        """"Return a pre-set resource URL if available."""
+
         return getattr(self, '_full_url', None)
 
     @property
@@ -176,16 +187,20 @@ class ResourceModel(object):
 
     @property
     def resource_id(self):
-        "Return object's resource_id value. Returns None if not available"
+        """Return object's resource_id value. Returns None if not available"""
+
         if not self._resource_id_name:
             return None
+
         return getattr(self, self._resource_id_name, None)
 
     @resource_id.setter
     def resource_id(self, resource_id_value):
-        "Set object's resource_id field to ``resource_id_value``"
+        """Set object's resource_id field to ``resource_id_value``."""
+
         if not self._resource_id_name:
             return None
+
         setattr(self, self._resource_id_name, resource_id_value)
 
     # etc
@@ -194,7 +209,6 @@ class ResourceModel(object):
         return val or ''
 
     def __repr__(self):
-        val = "<%s: %s>" % (self.__class__.__name__, self.__unicode__())
-        # For py2 repr needs to return a non-unicode string and in py3 it's the opposite
-        return val.encode('utf8') if six.PY2 else val
+        val = '<{}: {}>'.format(self.__class__.__name__, self.__unicode__())
+        return val
 

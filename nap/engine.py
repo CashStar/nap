@@ -1,27 +1,24 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import copy
 import json
 
-from .collection import ListWithAttributes
-from .exceptions import InvalidStatusError, BadRequestError
-from .http import NapRequest, NapResponse
-from .serializers import JSONSerializer
-from .utils import handle_slash, make_url, to_unicode
+from nap.collection import ListWithAttributes
+from nap.exceptions import BadRequestError, InvalidStatusError
+from nap.http import NapRequest, NapResponse
+from nap.serializers import JSONSerializer
+from nap.utils import handle_slash, make_url, to_unicode
 
 
-class ResourceEngine(object):
-
+class ResourceEngine:
     def __init__(self, model):
         self.model = model
         self._tmp_request_args = {}
 
     def _request(self, request_method, url, *args, **kwargs):
-        "Construct a NapRequest and send it via a requests.rest call"
+        """Construct a NapRequest and send it via a requests.rest call."""
 
         full_url = self.get_full_url(url)
 
-        self.logger.info("Calling %s url: %s" % (request_method, full_url))
+        self.logger.info('Calling %s url: %s', request_method, full_url)
 
         request_args = self.get_request_args(kwargs)
 
@@ -46,27 +43,32 @@ class ResourceEngine(object):
 
     # url methods
     def _generate_url(self, url_type='lookup', resource_obj=None, **kwargs):
-        """Iterates through object's URL list to find an approrpiate match
+        """Iterates through object's URL list to find an appropriate match
         between ``url_type`` and ``kwargs
 
-        :param url_type: string representing the type of URL to find. options \
-        are "lookup", "create", "update" and "collection"
-        :param kwargs: additional variables to pass to the LookupURL's match method
+        :param url_type: string representing the type of URL to find. options
+            are "lookup", "create", "update" and "collection"
+        :param kwargs: additional variables to pass to the LookupURL's match
+            method
         """
+
         valid_urls = [
             url for url in self.model._meta['urls']
             if getattr(url, url_type, False)
         ]
         for url in valid_urls:
-            field_values = dict([
-                (var, getattr(resource_obj, var))
+            field_values = {
+                var: getattr(resource_obj, var)
                 for var in url.required_vars
                 if getattr(resource_obj, var, None)
-            ])
+            }
 
             # handle resource_id fields
             resource_id_name = self.model._meta.get('resource_id_field_name')
-            if resource_id_name in kwargs and 'resource_id' in url.required_vars:
+            if (
+                    resource_id_name in kwargs and
+                    'resource_id' in url.required_vars
+            ):
                 kwargs['resource_id'] = kwargs[resource_id_name]
                 if resource_id_name not in url.required_vars:
                     del kwargs[resource_id_name]
@@ -75,10 +77,11 @@ class ResourceEngine(object):
                 'resource_name': self.model._meta['resource_name']
             }
 
-            url_match_vars = dict([
-                (k, v) for (k, v) in model_keywords.items()
+            url_match_vars = {
+                k: v
+                for k, v in model_keywords.items()
                 if k in url.url_vars
-            ])
+            }
 
             url_match_vars.update(field_values)
             url_match_vars.update(kwargs)
@@ -94,7 +97,7 @@ class ResourceEngine(object):
 
                 return full_url
 
-        raise ValueError("No valid url")
+        raise ValueError('No valid url')
 
     def get_lookup_url(self, resource_obj=None, **kwargs):
         """Generate a URL suitable for get requests based on ``kwargs``
@@ -103,9 +106,8 @@ class ResourceEngine(object):
         :param kwargs: URL lookup variables
         :param resource_obj: Resource to determine a canonical GET uri
         """
-        return self._generate_url(resource_obj=resource_obj, **kwargs)
 
-        raise ValueError("no valid URL for lookup found")
+        return self._generate_url(resource_obj=resource_obj, **kwargs)
 
     def get_update_url(self, resource_obj=None, **kwargs):
         """Generate a URL suitable for update requests based on ``kwargs``
@@ -118,7 +120,9 @@ class ResourceEngine(object):
             return full_url
 
         try:
-            update_url = self._generate_url(url_type='update', resource_obj=resource_obj, **kwargs)
+            update_url = self._generate_url(
+                url_type='update', resource_obj=resource_obj, **kwargs
+            )
         except ValueError:
             update_url = None
 
@@ -129,7 +133,10 @@ class ResourceEngine(object):
 
         :param kwargs: URL lookup variables
         """
-        return self._generate_url(url_type='create', resource_obj=resource_obj, **kwargs)
+
+        return self._generate_url(
+            url_type='create', resource_obj=resource_obj, **kwargs
+        )
 
     def get_delete_url(self, resource_obj=None, **kwargs):
         """Generate a URL suitable for delete requests based on ``kwargs``
@@ -138,7 +145,10 @@ class ResourceEngine(object):
 
         :param kwargs: URL lookup variables
         """
-        return self._generate_url(url_type='update', resource_obj=resource_obj, **kwargs)
+
+        return self._generate_url(
+            url_type='update', resource_obj=resource_obj, **kwargs
+        )
 
     # access methods
     def get(self, uri=None, skip_cache=False, **kwargs):
@@ -168,6 +178,7 @@ class ResourceEngine(object):
     def get_from_uri(self, url, skip_cache=False, *args, **kwargs):
         """instance method to perform all non-collection get requests
         """
+
         cleaned_url = handle_slash(url, self.model._meta['add_slash'])
 
         if skip_cache:
@@ -187,20 +198,23 @@ class ResourceEngine(object):
         obj = self.obj_from_response(response)
 
         obj._full_url = cleaned_url
+
         return obj
 
     def validate_get_response(self, response):
-        """Validate get response is valid to use for updating our object
-        """
+        """Validate get response is valid to use for updating our object."""
 
         self.validate_response(response)
         if response.status_code not in self.model._meta['valid_get_status']:
-            raise InvalidStatusError(self.model._meta['valid_get_status'], response)
+            raise InvalidStatusError(
+                self.model._meta['valid_get_status'], response
+            )
 
     def handle_get_response(self, response):
         """Handle any actions needed after a HTTP Response has ben validated
         for a get (get, refresh, lookup) action
         """
+
         content_str = to_unicode(response.content)
         resource_data = self.deserialize(content_str)
 
@@ -231,9 +245,12 @@ class ResourceEngine(object):
         Accesses the first URL set as a collections URL with no additional
         parameters passed. Returns a list of current ResourceModel objects
 
-        :param skip_cache: If true don't cache results (defaults to true for backwards compatibilty) and don't check cache for an existing value for this request
+        :param skip_cache: If true don't cache results (defaults to true
+            for backwards compatibilty) and don't check cache for an existing
+            value for this request
         :param lookup_vars: variables to pass to _generate_url
         """
+
         url = self.get_collection_url(**lookup_vars)
 
         if skip_cache:
@@ -275,12 +292,13 @@ class ResourceEngine(object):
         return ListWithAttributes(resource_list, extra_data)
 
     def validate_collection_response(self, response):
-        """Validate get response is valid to use for updating our object
-        """
+        """Validate get response is valid to use for updating our object."""
 
         self.validate_response(response)
         if response.status_code not in self.model._meta['valid_get_status']:
-            raise InvalidStatusError(self.model._meta['valid_get_status'], response)
+            raise InvalidStatusError(
+                self.model._meta['valid_get_status'], response
+            )
 
     # write methods
     def update(self, resource_obj, **kwargs):
@@ -295,7 +313,8 @@ class ResourceEngine(object):
             raise ValueError('No update url found')
 
         response = self._request(
-            self.model._meta['update_method'], url,
+            self.model._meta['update_method'],
+            url,
             data=self.serialize(resource_obj, for_read=True)
         )
 
@@ -311,7 +330,9 @@ class ResourceEngine(object):
             raise BadRequestError(response, errors)
 
         if response.status_code not in self.model._meta['valid_update_status']:
-            raise InvalidStatusError(self.model._meta['valid_update_status'], response)
+            raise InvalidStatusError(
+                self.model._meta['valid_update_status'], response
+            )
 
     def handle_update_response(self, response):
         """Handle any actions needed after a HTTP response has been validated
@@ -322,6 +343,7 @@ class ResourceEngine(object):
 
         :param response: a requests.Response object
         """
+
         if not self.model._meta['update_from_write'] or not response.content:
             return
 
@@ -343,7 +365,8 @@ class ResourceEngine(object):
 
         new_obj_data = self.serialize(resource_obj, for_read=True)
         response = self._request(
-            'POST', self.get_create_url(resource_obj, **kwargs),
+            'POST',
+            self.get_create_url(resource_obj, **kwargs),
             data=new_obj_data
         )
 
@@ -372,7 +395,9 @@ class ResourceEngine(object):
             raise BadRequestError(response, errors)
 
         if response.status_code not in self.model._meta['valid_create_status']:
-            raise InvalidStatusError(self.model._meta['valid_create_status'], response)
+            raise InvalidStatusError(
+                self.model._meta['valid_create_status'], response
+            )
 
     def handle_create_response(self, response):
         """Handle any actions needed after a HTTP response has been validated
@@ -400,7 +425,9 @@ class ResourceEngine(object):
 
         self.validate_response(response)
         if response.status_code not in self.model._meta['valid_delete_status']:
-            raise InvalidStatusError(self.model._meta['valid_delete_status'], response)
+            raise InvalidStatusError(
+                self.model._meta['valid_delete_status'], response
+            )
 
     def handle_delete_response(self, response):
         """Handle any actions needed after a HTTP response has been validated
@@ -415,7 +442,8 @@ class ResourceEngine(object):
         self.handle_response(response)
 
     def serialize(self, obj, for_read=False):
-        """Convert field data of `self` to the appropriate string serialization format
+        """Convert field data of `self` to the appropriate string
+        serialization format.
 
         :param for_read: include readonly fields.
         """
@@ -452,6 +480,7 @@ class ResourceEngine(object):
         Default handler for all response types. Ran as the last step in a
         request/response cycle
         """
+
         self._tmp_request_args = {}
         self.cache_response(response)
 
@@ -460,6 +489,7 @@ class ResourceEngine(object):
 
         :param field_data: dict-like object with 'Field Name'->'New  Value'
         """
+
         obj = self.model()
         serializer = self.get_serializer()
         field_data = serializer.deserialize(to_unicode(response.content))
@@ -479,16 +509,21 @@ class ResourceEngine(object):
             model=self.model,
             url=full_url,
         )
-        self.logger.debug("Trying to get cached response for %s" % cache_key)
+        self.logger.debug('Trying to get cached response for %s', cache_key)
         cached_response = self.cache.get(cache_key)
         if cached_response:
-            self.logger.debug("Got cached response for %s" % cache_key)
+            self.logger.debug('Got cached response for %s', cache_key)
 
             if not isinstance(cached_response, NapResponse):
-                self.logger.error("Expected to get a NapResponse from cache, but got %s instead: %s",
-                    type(cached_response), cached_response)
+                self.logger.error(
+                    'Expected to get a NapResponse from cache, but got %s '
+                    'instead: %s',
+                    type(cached_response),
+                    cached_response
+                )
 
-                # We've got some sort of garbage back from memcache. Let's not use it. 
+                # We've got some sort of garbage back from memcache. Let's
+                # not use it.
                 return None
             else:
                 # Cached responses should not get re-cached to allow for
@@ -498,8 +533,11 @@ class ResourceEngine(object):
                 return cached_response
 
     def cache_response(self, response):
-        if response.request_method not in self.model._meta['cached_methods']\
-                or not response.use_cache:
+        if (
+                response.request_method not in
+                self.model._meta['cached_methods'] or
+                not response.use_cache
+        ):
             return
 
         cache_key = self.cache.get_cache_key(
@@ -551,8 +589,8 @@ class ResourceEngine(object):
         try:
             root_url = self.model._meta['root_url']
         except KeyError:
-            raise ValueError("Nap requests require root_url to be defined")
+            raise ValueError('Nap requests require root_url to be defined')
 
-        full_url = "%s/%s" % (root_url.rstrip('/'), uri.lstrip('/'))
+        full_url = '{}/{}'.format(root_url.rstrip('/'), uri.lstrip('/'))
+
         return full_url
-

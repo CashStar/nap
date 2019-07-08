@@ -1,24 +1,19 @@
-from __future__ import unicode_literals
 import json
 
 import pytest
-
 from nap.serializers import BaseSerializer, JSONSerializer
 
 
 def test_base_serializer():
-    from pytest import raises
-
     serializer = BaseSerializer()
     with pytest.raises(NotImplementedError):
         serializer.serialize({})
 
-    with raises(NotImplementedError):
+    with pytest.raises(NotImplementedError):
         serializer.deserialize('{}')
 
 
-class TestJSONSerializer(object):
-
+class TestJSONSerializer:
     def get_serializer(self):
         return JSONSerializer()
 
@@ -35,7 +30,6 @@ class TestJSONSerializer(object):
         assert dict_from_json == sample_dict
 
     def test_deserialize(self):
-
         serializer = self.get_serializer()
 
         json_str = '{"a": 1, "b": 2}'

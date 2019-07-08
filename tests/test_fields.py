@@ -1,25 +1,28 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import datetime
-import pytest
 from decimal import Decimal
 
-from . import AuthorModel
-from nap.fields import (Field, ResourceField, ListField,
-        DictField, DateTimeField, DateField, DecimalField, SimpleListField)
+import pytest
+from nap.fields import (
+    DateField,
+    DateTimeField,
+    DecimalField,
+    DictField,
+    Field,
+    ListField,
+    ResourceField,
+    SimpleListField
+)
+from tests import AuthorModel
 
 
-class TestFields(object):
-
+class TestFields:
     def test_field(self):
-
         field = Field(default='xyz')
 
         assert field.get_default() == 'xyz'
         assert field.scrub_value('123') == '123'
 
     def test_readonly(self):
-
         field = Field()
         assert field.readonly is False
 
@@ -33,7 +36,6 @@ class TestFields(object):
         assert pk_readonly_field.readonly is False
 
     def test_resource_field(self):
-
         field = ResourceField(AuthorModel)
 
         assert field.scrub_value('') is None
@@ -63,12 +65,12 @@ class TestFields(object):
                 'email': 'elitist@gmail.com',
             },
             {
-                'name': "Bob",
+                'name': 'Bob',
                 'email': None
             },
             {
-                'name': "Jane",
-                "email": "jane@doe.com",
+                'name': 'Jane',
+                'email': 'jane@doe.com',
             }
         ]
         resource_list = field.scrub_value(author_dict_list)
@@ -108,7 +110,7 @@ class TestFields(object):
                 'email': 'elitist@gmail.com',
             },
             'ghost_writer': {
-                'name': "Bob",
+                'name': 'Bob',
                 'email': None,
             },
         }
@@ -124,7 +126,6 @@ class TestFields(object):
         assert new_author_dict_dict == author_dict_dict
 
     def test_datetime_field(self):
-
         field = DateTimeField()
 
         dt_str = '2012-08-21T22:30:14'
@@ -145,8 +146,7 @@ class TestFields(object):
         assert field.descrub_value(None) is None
 
     def test_datetime_field_new_dt_format(self):
-
-        boring_format = "%Y-%m-%d %H:%M:%S"
+        boring_format = '%Y-%m-%d %H:%M:%S'
         field = DateTimeField(dt_format=boring_format)
 
         dt_str = '2010-06-02 16:30:06'
@@ -155,9 +155,9 @@ class TestFields(object):
         assert field.scrub_value(dt_str) == expected_dt
         assert field.descrub_value(expected_dt) == dt_str
 
-        field = DateTimeField(dt_formats=(boring_format, "%Y-%m-%dT%H:%M:%S"))
+        field = DateTimeField(dt_formats=(boring_format, '%Y-%m-%dT%H:%M:%S'))
         dt_str2 = '2010-06-02T16:30:06'
-        bad_string = "2010/06/02 16:30 06 seconds"
+        bad_string = '2010/06/02 16:30 06 seconds'
         expected_dt = datetime.datetime(year=2010, month=6, day=2,
                                         hour=16, minute=30, second=6)
         assert field.scrub_value(dt_str) == expected_dt
@@ -173,7 +173,6 @@ class TestFields(object):
         assert field.descrub_value(expected_dt) == dt_str
 
     def test_date_field(self):
-
         field = DateField()
 
         dt_str = '2012-08-21'
@@ -182,14 +181,12 @@ class TestFields(object):
         assert field.descrub_value(expected_dt) == dt_str
 
     def test_empty_date_field(self):
-
         field = DateField()
         assert field.scrub_value(None) is None
         assert field.descrub_value(None) is None
 
     def test_date_field_new_dt_format(self):
-
-        american_format = "%m/%d/%Y"
+        american_format = '%m/%d/%Y'
         field = DateField(dt_format=american_format)
 
         dt_str = '08/21/2012'
@@ -197,9 +194,9 @@ class TestFields(object):
         assert field.scrub_value(dt_str) == expected_dt
         assert field.descrub_value(expected_dt) == dt_str
 
-        field = DateField(dt_formats=(american_format, "%Y-%m-%d"))
+        field = DateField(dt_formats=(american_format, '%Y-%m-%d'))
         dt_str2 = '08/21/2012'
-        bad_string = "2010~06~02"
+        bad_string = '2010~06~02'
         expected_dt = datetime.date(year=2012, month=8, day=21)
         assert field.scrub_value(dt_str) == expected_dt
         assert field.scrub_value(dt_str2) == expected_dt
@@ -208,12 +205,11 @@ class TestFields(object):
         with pytest.raises(ValueError):
             field.scrub_value(bad_string)
 
-
     def test_simple_list_field(self):
         field = SimpleListField()
 
         # existing list returns the same list
-        assert [1,2,3,4] == field.scrub_value([1,2,3,4])
+        assert [1, 2, 3, 4] == field.scrub_value([1, 2, 3, 4])
 
         # existing tuple
         assert [123] == field.scrub_value(123,)
@@ -228,7 +224,7 @@ class TestFields(object):
 
         # ---- descrub
         # existing list returns the same list
-        assert [1,2,3,4] == field.descrub_value([1,2,3,4])
+        assert [1, 2, 3, 4] == field.descrub_value([1, 2, 3, 4])
 
         # existing tuple
         assert [123] == field.descrub_value(123,)

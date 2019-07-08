@@ -1,16 +1,13 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 try:
     from django.core.cache import cache
 except ImportError as e:
-    raise ImportError("Error loading django cache module: %s" % e)
+    raise ImportError('Error loading django cache module: {}'.format(e))
 
 
-from .base import BaseCacheBackend
+from nap.cache.base import BaseCacheBackend
 
 
 class DjangoCacheBackend(BaseCacheBackend):
-
     def get(self, key):
         return cache.get(key)
 

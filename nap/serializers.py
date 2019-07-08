@@ -1,9 +1,7 @@
-from __future__ import unicode_literals
 import json
 
 
-class BaseSerializer(object):
-
+class BaseSerializer:
     def serialize(self, val_dict):
         raise NotImplementedError
 
@@ -11,12 +9,9 @@ class BaseSerializer(object):
         raise NotImplementedError
 
 
-class JSONSerializer(object):
-
+class JSONSerializer:
     def serialize(self, val_dict):
-
         return json.dumps(val_dict)
 
     def deserialize(self, val_str):
-
         return json.loads(val_str)

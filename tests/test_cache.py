@@ -1,24 +1,25 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
-import mock
-import pytest
 import json
-from flask import Flask
 import unittest
+from unittest import mock
 
-from . import SampleResourceModel, SampleCacheableResource
+from flask import Flask
 from nap.cache import django_cache, flask_cache
-from nap.cache.base import BaseCacheBackend, DEFAULT_TIMEOUT, MAX_CACHE_KEY_LENGTH
+from nap.cache.base import (
+    DEFAULT_TIMEOUT,
+    MAX_CACHE_KEY_LENGTH,
+    BaseCacheBackend
+)
+from tests import SampleCacheableResource, SampleResourceModel
 
 
-class TestBaseCacheBackend(object):
-
+class TestBaseCacheBackend:
     def get_backend(self, **kwargs):
         defaults = {
             'default_timeout': DEFAULT_TIMEOUT,
             'obey_cache_headers': True,
         }
         defaults.update(kwargs)
+
         return BaseCacheBackend(**defaults)
 
     def get_fake_request(self, **kwargs):
@@ -62,18 +63,22 @@ class TestBaseCacheBackend(object):
     def test_cache_key_very_long_is_hashed(self):
         # Given: A cache backend and a very long URL
         cache_backend = self.get_backend()
-        url = """https://a.very.long.url.should.contain.a.famous.quote.such.as.
-        Government.of.the people,by.the.people,for.the.people,shall.not.perish.from.the.Earth.
-        Hmmm.That.wasnt.long.enough.How.About.
-        And.in.the.end,its.not.the.years.in.your.life.that.count..Its.the.life.in.your.years.
-        Abraham.Lincoln.com"""
+        url = (
+            'https://a.very.long.url.should.contain.a.famous.quote.such.as.'
+            'Government.of.the people,by.the.people,for.the.people,shall.not.'
+            'perish.from.the.Earth.'
+            'Hmmm.That.wasnt.long.enough.How.About.'
+            'And.in.the.end,its.not.the.years.in.your.life.that.count..Its.'
+            'the.life.in.your.years.'
+            'Abraham.Lincoln.com'
+        )
         assert len(url) > MAX_CACHE_KEY_LENGTH
         cache_backend.get_cache_key(SampleResourceModel, url)
-        obj = SampleResourceModel(
+        SampleResourceModel(
             title='expected_title',
             content='Blank Content'
         )
-        expected_key = 'note::2c0d407be28bba0d46a37a91ac525e71'
+        expected_key = 'note::020b8d3c397af5f2ade0a683608068ee'
         cache_key = cache_backend.get_cache_key(SampleResourceModel, url)
         assert len(cache_key) < MAX_CACHE_KEY_LENGTH
         assert cache_key == expected_key
@@ -86,10 +91,16 @@ class TestBaseCacheBackend(object):
         )
         cache_backend = self.get_backend()
 
-        uri = SampleResourceModel.objects.get_lookup_url(resource_obj=obj, **kwargs)
+        uri = SampleResourceModel.objects.get_lookup_url(
+            resource_obj=obj, **kwargs
+        )
         url = SampleResourceModel.objects.get_full_url(uri)
         key = cache_backend.get_cache_key(SampleResourceModel, url)
-        assert key == "note::http://foo.com/v1/expected_title/?a_list=5&a_list=4&a_list=3&b=2&c=1"
+        expected_value = (
+            'note::http://foo.com/v1/expected_title/?a_list=5&a_list=4&'
+            'a_list=3&b=2&c=1'
+        )
+        assert key == expected_value
 
     def test_get_timeout_from_header(self):
         cache_backend = self.get_backend()
@@ -137,13 +148,13 @@ class TestBaseCacheBackend(object):
 
 
 class TestDjangoCacheBackend(TestBaseCacheBackend):
-
     def get_backend(self, **kwargs):
         defaults = {
             'default_timeout': DEFAULT_TIMEOUT,
             'obey_cache_headers': True,
         }
         defaults.update(kwargs)
+
         return django_cache.DjangoCacheBackend(**defaults)
 
     def test_get(self):
@@ -168,7 +179,6 @@ class TestDjangoCacheBackend(TestBaseCacheBackend):
 
 
 class TestFlaskCacheBackend(TestBaseCacheBackend):
-
     def get_backend(self, **kwargs):
         defaults = {
             'default_timeout': DEFAULT_TIMEOUT,
@@ -180,6 +190,7 @@ class TestFlaskCacheBackend(TestBaseCacheBackend):
         }
         app = Flask(__name__, static_url_path='/store/static')
         defaults.update(kwargs)
+
         return flask_cache.FlaskCacheBackend(app, **defaults)
 
     def test_get(self):
@@ -206,7 +217,8 @@ class TestFlaskCacheBackend(TestBaseCacheBackend):
 class TestCaching(unittest.TestCase):
     def setUp(self):
         self.the_cache = SampleCacheableResource._meta['cache_backend']
-        # NOTE: there is a single instance of the in memory (fake) cache for all instances of our model
+        # NOTE: there is a single instance of the in memory (fake) cache for
+        # all instances of our model
         self.the_cache.clear()
 
     @mock.patch('requests.request')
@@ -214,7 +226,8 @@ class TestCaching(unittest.TestCase):
         """Test that filter() responses can be cached.
         NOTE: nap only supports GETs on filter() calls. Weird"""
 
-        # create mock request nap is going to issue and a mock response that nap will get back
+        # create mock request nap is going to issue and a mock response that
+        # nap will get back
         r = mock.Mock()
         r.status_code = 200
         r.content = json.dumps([
@@ -228,21 +241,29 @@ class TestCaching(unittest.TestCase):
         assert len(obj) == 2
         assert len(self.the_cache.get_cached_data()) == 0
 
-        # Repeat this time with caching ENABLED and verify the request / response was cached
+        # Repeat this time with caching ENABLED and verify the request /
+        # response was cached
         obj = SampleCacheableResource.objects.filter(skip_cache=False)
         assert len(obj) == 2
         assert len(self.the_cache.get_cached_data()) == 1
 
-        # Repeat a final time, this time we should get the object from cache w/o making another network request
+        # Repeat a final time, this time we should get the object from cache
+        # w/o making another network request
         mock_request.return_value = None
-        mock_request.side_effect = Exception("We're making a network request when we should be using the cached data")
-        obj = SampleCacheableResource.objects.filter(skip_cache=False)
+        mock_request.side_effect = Exception(
+            'We\'re making a network request when we should be using the '
+            'cached data'
+        )
+        SampleCacheableResource.objects.filter(skip_cache=False)
+        assert obj is not None
+        assert len(self.the_cache.get_cached_data()) == 1
 
     @mock.patch('requests.request')
     def test_get_response_from_lookup_is_cached(self, mock_request):
         """Test that lookup() responses can be cached."""
 
-        # create mock request nap is going to issue and a mock response that nap will get back
+        # create mock request nap is going to issue and a mock response that
+        # nap will get back
         r = mock.Mock()
         r.status_code = 200
         r.content = json.dumps({'title': 'hello1', 'content': 'content1'})
@@ -252,18 +273,24 @@ class TestCaching(unittest.TestCase):
         obj = SampleCacheableResource.objects.lookup(skip_cache=True)
         assert obj is not None
 
-        # NOTE: unlike filter() lookup() always puts the result in the cache. filter() only stores values in the cache
+        # NOTE: unlike filter() lookup() always puts the result in the cache.
+        # filter() only stores values in the cache
         # if skip_cache is False
         assert len(self.the_cache.get_cached_data()) == 1
 
-        # Repeat this time with caching ENABLED and verify the request / response was cached
+        # Repeat this time with caching ENABLED and verify the request /
+        # response was cached
         obj = SampleCacheableResource.objects.lookup(skip_cache=False)
         assert obj is not None
         assert len(self.the_cache.get_cached_data()) == 1
 
-        # Repeat a final time, this time we should get the object from cache w/o making another network request
+        # Repeat a final time, this time we should get the object from cache
+        # w/o making another network request
         mock_request.return_value = None
-        mock_request.side_effect = Exception("We're making a network request when we should be using the cached data")
+        mock_request.side_effect = Exception(
+            'We\'re making a network request when we should be using the '
+            'cached data'
+        )
         obj = SampleCacheableResource.objects.lookup(skip_cache=False)
         assert obj is not None
         assert len(self.the_cache.get_cached_data()) == 1

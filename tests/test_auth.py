@@ -1,20 +1,15 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 from nap import auth
-from .utils import get_nap_request
+from tests.utils import get_nap_request
 
 
-class TestBaseAuthorization(object):
-
+class TestBaseAuthorization:
     def test_dummy_methods(self):
-
         base_auth = auth.BaseAuthorization()
 
         assert base_auth.handle_request('1234') == '1234'
 
 
-class TestHttpAuthorization(object):
-
+class TestHttpAuthorization:
     def test_handle_request(self):
         http_auth = auth.HttpAuthorization(username='user', password='pass')
 
@@ -25,12 +20,12 @@ class TestHttpAuthorization(object):
         assert new_request.auth == ('user', 'pass')
 
 
-class TestFoauthAuthorization(object):
-
+class TestFoauthAuthorization:
     def create_auth(self):
         foauth_auth = auth.FoauthAuthorization(
             email='test@email.com',
-            password='123')
+            password='123'
+        )
 
         return foauth_auth
 

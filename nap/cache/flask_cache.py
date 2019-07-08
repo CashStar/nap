@@ -1,16 +1,13 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 try:
     import flask_caching
 except ImportError as e:
-    raise ImportError("Error loading Flask-Caching: %s" % e)
+    raise ImportError('Error loading Flask-Caching: {}'.format(e))
 
 
-from .base import BaseCacheBackend, DEFAULT_TIMEOUT
+from nap.cache.base import BaseCacheBackend
 
 
 class FlaskCacheBackend(BaseCacheBackend):
-
     def __init__(self, app, config=None, **kwargs):
         super(FlaskCacheBackend, self).__init__(**kwargs)
         self.cache = flask_caching.Cache(app, config=config)

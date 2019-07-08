@@ -1,8 +1,6 @@
-from __future__ import unicode_literals
 import itertools
 from operator import itemgetter
-import six
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 
 def handle_slash(url, add_slash=None):
@@ -10,12 +8,12 @@ def handle_slash(url, add_slash=None):
 
     if add_slash and not split[0].endswith('/'):
         if len(split) > 1:
-            url = "%s/?%s" % (split[0], split[1])
+            url = '{}/?{}'.format(split[0], split[1])
         else:
-            url = "%s/" % url
+            url = '{}/'.format(url)
     elif add_slash is False and split[0].endswith('/'):
         if len(split) > 1:
-            url = "%s?%s" % (split[0][:-1], split[1])
+            url = "{}?{}".format(split[0][:-1], split[1])
         else:
             url = split[0][:-1]
 
@@ -23,17 +21,17 @@ def handle_slash(url, add_slash=None):
 
 
 def is_string_like(obj):
-    return isinstance(obj, six.string_types)
+    return isinstance(obj, str)
 
 
 def safe_encode(value):
-    if isinstance(value, six.text_type):
+    if isinstance(value, str):
         return value.encode('utf-8')
     return value
 
 
 def make_url(base_url, params=None, add_slash=None):
-    "Split off in case we need to handle more scrubing"
+    """Split off in case we need to handle more scrubbing."""
 
     base_url = handle_slash(base_url, add_slash)
 
@@ -42,7 +40,7 @@ def make_url(base_url, params=None, add_slash=None):
         # we want to pass in multiple instances of that param key.
         def flatten_params(k, vs):
             if not hasattr(vs, '__iter__') or is_string_like(vs):
-                return ((k, safe_encode(vs)),)
+                return (k, safe_encode(vs)),
             return [(k, safe_encode(v)) for v in vs]
 
         flat_params = [
@@ -52,14 +50,13 @@ def make_url(base_url, params=None, add_slash=None):
 
         # since we can have more than one value for a single key, we use a
         # tuple of two tuples instead of a dictionary
-        params_tuple = tuple(sorted(itertools.chain(*flat_params), key=itemgetter(0)))
+        params_tuple = tuple(
+            sorted(itertools.chain(*flat_params), key=itemgetter(0))
+        )
         param_string = urlencode(params_tuple)
-        base_url = "%s?%s" % (base_url, param_string)
+        base_url = '{}?{}'.format(base_url, param_string)
 
     return base_url
-
-
-__text_fn = str if six.PY3 else unicode
 
 
 def to_unicode(s):
@@ -67,13 +64,13 @@ def to_unicode(s):
         return None
 
     # unicode strings
-    elif isinstance(s, six.text_type):
+    elif isinstance(s, str):
         return s
 
     # non-unicode strings
-    elif isinstance(s, six.binary_type):
-        return __text_fn(s, 'utf-8')
+    elif isinstance(s, bytes):
+        return str(s, 'utf-8')
 
     # non-string types
     else:
-        return __text_fn(s)
+        return str(s)

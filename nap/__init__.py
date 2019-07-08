@@ -1,11 +1,20 @@
-from __future__ import absolute_import
-from .fields import (Field, ResourceField, DictField, ListField, DateTimeField)
-from .lookup import nap_url
-from .resources import ResourceModel
+from nap.fields import (
+    DateTimeField,
+    DictField,
+    Field,
+    ListField,
+    ResourceField
+)
+from nap.lookup import nap_url
+from nap.resources import ResourceModel
 
 
 __all__ = (
     ResourceModel,
-    DateTimeField, Field, ResourceField, DictField, ListField,
+    DateTimeField,
+    Field,
+    ResourceField,
+    DictField,
+    ListField,
     nap_url
 )

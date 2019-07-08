@@ -1,11 +1,9 @@
-from __future__ import unicode_literals
 from nap.collection import ListWithAttributes
 
 
-class TestListWithAttributes(object):
-
+class TestListWithAttributes:
     def test_acts_like_list(self):
-        lwa = ListWithAttributes([1,2,3])
+        lwa = ListWithAttributes([1, 2, 3])
 
         assert len(lwa) == 3
         assert 1 in lwa
@@ -14,6 +12,6 @@ class TestListWithAttributes(object):
 
     def test_extra_data(self):
         ed = {'some_data': 'Hello'}
-        lwa = ListWithAttributes([1,2,3], extra_data=ed)
+        lwa = ListWithAttributes([1, 2, 3], extra_data=ed)
 
         assert lwa.extra_data['some_data'] == ed['some_data']

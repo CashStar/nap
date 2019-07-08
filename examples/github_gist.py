@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import nap
 from nap.auth import FoauthAuthorization
 from nap.lookup import nap_url
@@ -35,7 +34,11 @@ class Gist(nap.ResourceModel):
         prepend_urls = (
             # For accessing /gists/starred and /gists/public, eg.
             # Gist.filter(property='starred')
-            nap_url('%(resource_name)s/%(property)s', collection=True, lookup=False),
+            nap_url(
+                '%(resource_name)s/%(property)s',
+                collection=True,
+                lookup=False
+            ),
         )
         auth = (
             FoauthAuthorization(secret.foauth_email, secret.foauth_password),

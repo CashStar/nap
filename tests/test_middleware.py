@@ -1,28 +1,23 @@
-from __future__ import unicode_literals
-from __future__ import absolute_import
 import json
+from unittest import mock
 
-import mock
-
-from . import SampleResourceModel
 from nap.middleware import BaseMiddleware
+from tests import SampleResourceModel
 
 
 class TestMiddleware(BaseMiddleware):
-
     def handle_request(self, request):
-        request = super(TestMiddleware, self).handle_request(request)
+        request = super().handle_request(request)
         request.headers.update({'fake_header': 'fake_value'})
         return request
 
     def handle_response(self, request, response):
-        response = super(TestMiddleware, self).handle_response(request, response)
+        response = super().handle_response(request, response)
         response.headers.update({'fake_header': 'fake_response_value'})
         return response
 
 
-class TestBaseMiddleware(object):
-
+class TestBaseMiddleware:
     def get_rm(self, **kwargs):
         rm = SampleResourceModel(**kwargs)
         rm._meta['middleware'] += TestMiddleware(),
@@ -32,8 +27,8 @@ class TestBaseMiddleware(object):
     def test_handle_request(self):
         rm = self.get_rm()
         fake_dict = {
-            'title': "A fake title",
-            'content': "isnt this neat",
+            'title': 'A fake title',
+            'content': 'isnt this neat',
         }
         with mock.patch('requests.request') as r:
             stubbed_response = mock.Mock()
@@ -50,8 +45,8 @@ class TestBaseMiddleware(object):
     def test_handle_response(self):
         rm = self.get_rm()
         fake_dict = {
-            'title': "A fake title",
-            'content': "isnt this neat",
+            'title': 'A fake title',
+            'content': 'isnt this neat',
         }
         with mock.patch('requests.request') as r:
             stubbed_response = mock.Mock()

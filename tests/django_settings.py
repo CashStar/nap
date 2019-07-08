@@ -11,8 +11,6 @@
 # situations, so it is recommended to run the test suite against as many
 # database backends as possible.  You may want to create a separate settings
 # file for each of the backends you test against.
-from __future__ import unicode_literals
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3'
