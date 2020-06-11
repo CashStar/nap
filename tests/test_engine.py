@@ -8,7 +8,7 @@ import pytest
 from nap.engine import ResourceEngine
 from nap.exceptions import BadRequestError, InvalidStatusError
 from nap.http import NapResponse
-from tests import SampleResourceModel
+from tests import SampleResourceModel, SampleOpaqueFilterResourceModel
 
 
 class BaseResourceModelTest:
@@ -578,3 +578,22 @@ def test_modify_request():
         )
 
     SampleResourceModel._lookup_urls = []
+
+
+class TestOpaqueFilterResourceEngine:
+    @mock.patch('requests.request')
+    def test_filter(self, mock_request):
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = json.dumps([
+            {'title': 'shopping list', 'content': '1. bread 2. milk'},
+            {'title': 'to do list', 'content': 'write unit tests'}
+        ])
+
+        mock_request.return_value = mock_response
+
+        notes = SampleOpaqueFilterResourceModel.objects.filter(title__icontains='list')
+
+        assert len(notes) == 2
+        assert hasattr(notes[0], 'title') and hasattr(notes[0], 'content')
+        assert getattr(notes[1], 'title') == 'to do list'

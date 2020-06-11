@@ -6,7 +6,7 @@ from nap.fields import (
     ResourceField
 )
 from nap.lookup import nap_url
-from nap.resources import ResourceModel
+from nap.resources import ResourceModel, OpaqueFilterResourceModel
 
 
 __all__ = (

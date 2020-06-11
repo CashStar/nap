@@ -597,7 +597,7 @@ class ResourceEngine:
 
 
 class OpaqueFilterResourceEngine(ResourceEngine):
-    def filter(self, skip_cache=True, **lookup_vars):
+    def filter(self, skip_cache=False, **lookup_vars):
         """
         Accesses the first URL set as a collections URL with no additional
         parameters passed. Returns a list of current ResourceModel objects

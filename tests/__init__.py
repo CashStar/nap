@@ -1,5 +1,10 @@
 import nap
 from nap.cache.base import BaseCacheBackend
+from nap.engine import OpaqueFilterResourceEngine
+from django.conf import settings
+from . import django_settings
+
+settings.configure(default_settings=django_settings)
 
 
 class SampleResourceModel(nap.ResourceModel):
@@ -14,6 +19,17 @@ class SampleResourceModel(nap.ResourceModel):
         append_urls = (
             nap.lookup.nap_url(r'%(hello)s/%(what)s/'),
             nap.lookup.nap_url(r'%(title)s/', update=True),
+        )
+
+
+class SampleOpaqueFilterResourceModel(nap.OpaqueFilterResourceModel):
+
+    class Meta (nap.OpaqueFilterResourceModel.Meta):
+        engine_class = OpaqueFilterResourceEngine
+        root_url = 'http://foo.test/v1/'
+        resource_name = 'note'
+        append_urls = (
+            nap.lookup.nap_url(r'notes/', collection=True),
         )
 
 

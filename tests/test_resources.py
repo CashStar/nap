@@ -2,11 +2,13 @@ from unittest import mock
 
 import nap
 import pytest
+from unittest import TestCase
 from nap.exceptions import EmptyResponseError
 from tests import (
     SampleResourceModel,
     SampleResourceNoIdModel,
-    SampleResourceNoUpdateModel
+    SampleResourceNoUpdateModel,
+    SampleOpaqueFilterResourceModel
 )
 
 
@@ -178,3 +180,35 @@ class TestResourceShortcutMethods:
         obj.delete()
         eng_del.assert_called_with(obj)
         assert obj.resource_id is None
+
+
+class TestOpaqueFilterResourceModel(TestCase):
+    def setUp(self):
+        self.resource_model = SampleOpaqueFilterResourceModel
+        self.starting_attributes = vars(self.resource_model).keys()
+
+    def tearDown(self):
+        self.resource_model._meta['fields'] = {}
+
+        for attribute in vars(self.resource_model).keys():
+            if attribute not in self.starting_attributes:
+                delattr(self.resource_model, attribute)
+
+    def test_update_resource_fields(self):
+        fake_response_fields = {'fruit': 'apple', 'vegetable': 'squash'}
+
+        # Given: a resource model
+        resource = self.resource_model()
+
+        # Which does not have specific attributes
+        assert not (hasattr(self.resource_model, 'fruit') or hasattr(self.resource_model, 'vegetable'))
+
+        # When: update_resource_fields is called to dynamically set class attributes
+        resource.update_resource_fields(fake_response_fields)
+
+        # Then: the resource model class does have the two attributes and they're Field's
+        assert isinstance(getattr(self.resource_model, 'fruit'), nap.Field)
+        assert isinstance(getattr(self.resource_model, 'vegetable'), nap.Field)
+
+        # checking that the data is populated on the resource model instance is done in
+        # TestOpaqueFilterResourceEngine.test_filter
