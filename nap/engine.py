@@ -594,3 +594,51 @@ class ResourceEngine:
         full_url = '{}/{}'.format(root_url.rstrip('/'), uri.lstrip('/'))
 
         return full_url
+
+
+class OpaqueFilterResourceEngine(ResourceEngine):
+    def filter(self, skip_cache=True, **lookup_vars):
+        """
+        Accesses the first URL set as a collections URL with no additional
+        parameters passed. Returns a list of current ResourceModel objects
+
+        Drops support for collection_field from ResourceEngine.filter
+
+        :param skip_cache: If true don't cache results (defaults to true
+        for backwards compatibility) and don't check cache for an existing
+        value for this request
+        :param lookup_vars: variables to pass to _generate_url
+        """
+
+        url = self.get_collection_url(**lookup_vars)
+
+        if skip_cache:
+            cached_response = None
+        else:
+            cached_response = self.get_from_cache('GET', url)
+
+        if cached_response:
+            response = cached_response
+        else:
+            response = self._request('GET', url)
+
+        self.validate_collection_response(response)
+
+        serializer = self.get_serializer()
+        obj_list = serializer.deserialize(to_unicode(response.content))
+        attributes = []
+
+        if obj_list:
+            try:
+                attributes = obj_list[0].keys()
+            except (KeyError, AttributeError):
+                raise ValueError('expected list of dictionaries')
+
+        self.model.update_resource_fields(attributes)
+
+        resource_list = [self.model(**obj_dict) for obj_dict in obj_list]
+
+        if not skip_cache:
+            self.cache_response(response)
+
+        return ListWithAttributes(resource_list, {})

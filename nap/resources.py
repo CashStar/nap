@@ -1,6 +1,7 @@
 from nap.conf import NapConfig
 from nap.exceptions import EmptyResponseError
 from nap.fields import Field
+from nap.engine import OpaqueFilterResourceEngine
 from nap.lookup import default_lookup_urls
 from nap.utils import to_unicode
 
@@ -212,3 +213,18 @@ class ResourceModel(metaclass=DataModelMetaClass):
         val = '<{}: {}>'.format(self.__class__.__name__, self.__unicode__())
         return val
 
+
+class OpaqueFilterResourceModel(ResourceModel):
+    @classmethod
+    def update_resource_fields(cls, attributes):
+        """Dynamically setting Resource fields based off response fields"""
+        for attribute_name in attributes:
+            if not hasattr(cls, attribute_name):
+                # see DataModelMetaClass.__new__
+                temp_field = Field()
+                temp_field._name = attribute_name
+                cls._meta['fields'][attribute_name] = temp_field
+                setattr(cls, attribute_name, temp_field)
+
+    class Meta:
+        engine_class = OpaqueFilterResourceEngine
