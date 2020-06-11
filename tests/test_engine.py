@@ -1,7 +1,7 @@
 import json
 import unittest
 from collections import OrderedDict
-from unittest import mock
+from unittest import mock, TestCase
 
 import nap
 import pytest
@@ -580,7 +580,18 @@ def test_modify_request():
     SampleResourceModel._lookup_urls = []
 
 
-class TestOpaqueFilterResourceEngine:
+class TestOpaqueFilterResourceEngine(TestCase):
+    def setUp(self):
+        self.resource_model = SampleOpaqueFilterResourceModel
+        self.starting_attributes = vars(self.resource_model).keys()
+
+    def tearDown(self):
+        self.resource_model._meta['fields'] = {}
+
+        for attribute in vars(self.resource_model).keys():
+            if attribute not in self.starting_attributes:
+                delattr(self.resource_model, attribute)
+
     @mock.patch('requests.request')
     def test_filter(self, mock_request):
         mock_response = mock.Mock()
@@ -592,7 +603,7 @@ class TestOpaqueFilterResourceEngine:
 
         mock_request.return_value = mock_response
 
-        notes = SampleOpaqueFilterResourceModel.objects.filter(title__icontains='list')
+        notes = self.resource_model.objects.filter(title__icontains='list')
 
         assert len(notes) == 2
         assert hasattr(notes[0], 'title') and hasattr(notes[0], 'content')
