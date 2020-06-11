@@ -604,9 +604,8 @@ class OpaqueFilterResourceEngine(ResourceEngine):
 
         Drops support for collection_field from ResourceEngine.filter
 
-        :param skip_cache: If true don't cache results (defaults to true
-        for backwards compatibility) and don't check cache for an existing
-        value for this request
+        :param skip_cache: If true don't cache results and don't check cache for
+        an existing value for this request
         :param lookup_vars: variables to pass to _generate_url
         """
 
