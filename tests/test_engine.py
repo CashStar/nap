@@ -1,14 +1,17 @@
 import json
 import unittest
 from collections import OrderedDict
-from unittest import mock, TestCase
+from unittest import mock
 
 import nap
 import pytest
 from nap.engine import ResourceEngine
 from nap.exceptions import BadRequestError, InvalidStatusError
 from nap.http import NapResponse
-from tests import SampleResourceModel, SampleOpaqueFilterResourceModel
+from tests import (
+    SampleResourceModel,
+    OpaqueFilterResourceTestCase,
+)
 
 
 class BaseResourceModelTest:
@@ -580,17 +583,7 @@ def test_modify_request():
     SampleResourceModel._lookup_urls = []
 
 
-class TestOpaqueFilterResourceEngine(TestCase):
-    def setUp(self):
-        self.resource_model = SampleOpaqueFilterResourceModel
-        self.starting_attributes = vars(self.resource_model).keys()
-
-    def tearDown(self):
-        self.resource_model._meta['fields'] = {}
-
-        for attribute in vars(self.resource_model).keys():
-            if attribute not in self.starting_attributes:
-                delattr(self.resource_model, attribute)
+class TestOpaqueFilterResourceEngine(OpaqueFilterResourceTestCase):
 
     @mock.patch('requests.request')
     def test_filter(self, mock_request):

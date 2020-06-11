@@ -2,13 +2,12 @@ from unittest import mock
 
 import nap
 import pytest
-from unittest import TestCase
 from nap.exceptions import EmptyResponseError
 from tests import (
     SampleResourceModel,
     SampleResourceNoIdModel,
     SampleResourceNoUpdateModel,
-    SampleOpaqueFilterResourceModel
+    OpaqueFilterResourceTestCase
 )
 
 
@@ -182,17 +181,7 @@ class TestResourceShortcutMethods:
         assert obj.resource_id is None
 
 
-class TestOpaqueFilterResourceModel(TestCase):
-    def setUp(self):
-        self.resource_model = SampleOpaqueFilterResourceModel
-        self.starting_attributes = vars(self.resource_model).keys()
-
-    def tearDown(self):
-        self.resource_model._meta['fields'] = {}
-
-        for attribute in vars(self.resource_model).keys():
-            if attribute not in self.starting_attributes:
-                delattr(self.resource_model, attribute)
+class TestOpaqueFilterResourceModel(OpaqueFilterResourceTestCase):
 
     def test_update_resource_fields(self):
         fake_response_fields = {'fruit': 'apple', 'vegetable': 'squash'}

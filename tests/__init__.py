@@ -1,7 +1,8 @@
 import nap
+from unittest import TestCase
+from django.conf import settings
 from nap.cache.base import BaseCacheBackend
 from nap.engine import OpaqueFilterResourceEngine
-from django.conf import settings
 from . import django_settings
 
 settings.configure(default_settings=django_settings)
@@ -103,3 +104,16 @@ class SampleCacheableResource(nap.ResourceModel):
             ),
         )
         cache_backend = InMemoryCache()
+
+
+class OpaqueFilterResourceTestCase(TestCase):
+    def setUp(self):
+        self.resource_model = SampleOpaqueFilterResourceModel
+        self.starting_attributes = vars(self.resource_model).keys()
+
+    def tearDown(self):
+        self.resource_model._meta['fields'] = {}
+
+        for attribute in vars(self.resource_model).keys():
+            if attribute not in self.starting_attributes:
+                delattr(self.resource_model, attribute)
