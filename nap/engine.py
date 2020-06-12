@@ -625,15 +625,14 @@ class OpaqueFilterResourceEngine(ResourceEngine):
 
         serializer = self.get_serializer()
         obj_list = serializer.deserialize(to_unicode(response.content))
-        attributes = []
 
         if obj_list:
             try:
-                attributes = obj_list[0].keys()
+                obj_list[0]
             except (KeyError, AttributeError):
                 raise ValueError('expected list of dictionaries')
 
-        self.model.update_resource_fields(attributes)
+        self.model.update_resource_fields(obj_list[0])
 
         resource_list = [self.model(**obj_dict) for obj_dict in obj_list]
 

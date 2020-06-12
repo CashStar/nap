@@ -1,6 +1,6 @@
 from nap.conf import NapConfig
 from nap.exceptions import EmptyResponseError
-from nap.fields import Field
+from nap.fields import Field, ResourceField
 from nap.engine import OpaqueFilterResourceEngine
 from nap.lookup import default_lookup_urls
 from nap.utils import to_unicode
@@ -215,16 +215,30 @@ class ResourceModel(metaclass=DataModelMetaClass):
 
 
 class OpaqueFilterResourceModel(ResourceModel):
+    @staticmethod
+    def recursive_resource_field_generator(parent_class, name, value):
+        if isinstance(value, dict):
+            # Use type to dynamically define new ResourceModel class
+            temp_resource_class_name = ''.join([w.capitalize() for w in name.split('_')]) + 'Resource'
+            temp_resource_class = type(temp_resource_class_name, (ResourceModel,), {})
+            for sub_name, sub_value in value.items():
+                OpaqueFilterResourceModel.recursive_resource_field_generator(temp_resource_class, sub_name, sub_value)
+            temp_field = ResourceField(temp_resource_class)
+
+        else:
+            temp_field = Field()
+
+        # see DataModelMetaClass.__new__
+        temp_field._name = name
+        parent_class._meta['fields'][name] = temp_field
+        setattr(parent_class, name, temp_field)
+
     @classmethod
     def update_resource_fields(cls, attributes):
         """Dynamically setting Resource fields based off response fields"""
-        for attribute_name in attributes:
+        for attribute_name, attribute_value in attributes.items():
             if not hasattr(cls, attribute_name):
-                # see DataModelMetaClass.__new__
-                temp_field = Field()
-                temp_field._name = attribute_name
-                cls._meta['fields'][attribute_name] = temp_field
-                setattr(cls, attribute_name, temp_field)
+                OpaqueFilterResourceModel.recursive_resource_field_generator(cls, attribute_name, attribute_value)
 
     class Meta:
         engine_class = OpaqueFilterResourceEngine

@@ -201,3 +201,18 @@ class TestOpaqueFilterResourceModel(OpaqueFilterResourceTestCase):
 
         # checking that the data is populated on the resource model instance is done in
         # TestOpaqueFilterResourceEngine.test_filter
+
+    def test_recursive_update_resource_fields(self):
+        fake_response_fields = {'fruit_preferences': {'name': 'apple', 'rank': 1, 'variety': 'red'}}
+
+        # Given: a resource model
+        resource = self.resource_model()
+
+        # When: update_resource_fields is called to dynamically set class attributes
+        resource.update_resource_fields(fake_response_fields)
+
+        # Then: a ResourceField was created on the Resource
+        self.assertTrue(isinstance(getattr(self.resource_model, 'fruit_preferences'), nap.ResourceField))
+
+        # checking that the data is populated as a new Resource in a ResourceField on the ResourceModel
+        # instance is done in TestOpaqueFilterResourceEngine.test_filter_with_recursive_population

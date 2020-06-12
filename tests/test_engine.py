@@ -584,9 +584,11 @@ def test_modify_request():
 
 
 class TestOpaqueFilterResourceEngine(OpaqueFilterResourceTestCase):
+    def setUp(self):
+        super().setUp()
+        self.mock_request = mock.patch('requests.request').start()
 
-    @mock.patch('requests.request')
-    def test_filter(self, mock_request):
+    def test_filter(self):
         mock_response = mock.Mock()
         mock_response.status_code = 200
         mock_response.content = json.dumps([
@@ -594,10 +596,32 @@ class TestOpaqueFilterResourceEngine(OpaqueFilterResourceTestCase):
             {'title': 'to do list', 'content': 'write unit tests'}
         ])
 
-        mock_request.return_value = mock_response
+        self.mock_request.return_value = mock_response
 
         notes = self.resource_model.objects.filter(title__icontains='list')
 
-        assert len(notes) == 2
-        assert hasattr(notes[0], 'title') and hasattr(notes[0], 'content')
-        assert getattr(notes[1], 'title') == 'to do list'
+        self.assertEquals(len(notes), 2)
+        self.assertTrue(hasattr(notes[0], 'title') and hasattr(notes[0], 'content'))
+        self.assertEquals(getattr(notes[1], 'title'), 'to do list')
+
+    def test_filter_with_recursive_population(self):
+        # Given: response content
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = json.dumps([
+            {'name': 'Brian',
+             'fruit_preferences': {'name': 'apple', 'rank': 1, 'variety': 'red'}},
+        ])
+
+        self.mock_request.return_value = mock_response
+
+        # When: filter is called and OpaqueFilterResourceModel.recursive_resource_field_generator
+        # is called
+        people = self.resource_model.objects.filter(name='Brian')
+
+        # Then: An appropriately named resource was created and used
+        self.assertTrue(hasattr(people[0], 'fruit_preferences'))
+        self.assertIn('FruitPreferencesResource', str(type(people[0].fruit_preferences)))
+
+        # Then: the data populated in the embedded ResourceModel is accessible normally
+        self.assertEquals(getattr(people[0].fruit_preferences, 'variety'), 'red')
