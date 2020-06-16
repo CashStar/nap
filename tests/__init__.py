@@ -1,11 +1,7 @@
 import nap
 from unittest import TestCase
-from django.conf import settings
 from nap.cache.base import BaseCacheBackend
 from nap.engine import OpaqueFilterResourceEngine
-from . import django_settings
-
-settings.configure(default_settings=django_settings)
 
 
 class SampleResourceModel(nap.ResourceModel):
