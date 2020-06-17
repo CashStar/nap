@@ -632,7 +632,7 @@ class OpaqueFilterResourceEngine(ResourceEngine):
             except (KeyError, AttributeError):
                 raise ValueError('expected list of dictionaries')
 
-        self.model.update_resource_fields(obj_list[0])
+            self.model.update_resource_fields(obj_list[0])
 
         resource_list = [self.model(**obj_dict) for obj_dict in obj_list]
 
