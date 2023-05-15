@@ -4,7 +4,7 @@ from datetime import datetime
 
 from setuptools import find_packages, setup
 
-version = '{}'.format(datetime.now().strftime('%Y-%m-%d-%H_%M_%S_%f'))
+version = '{}'.format(datetime.now().strftime('%Y.%m.%d+%H%M%S'))
 setup(
     name='nap',
     version=version,
